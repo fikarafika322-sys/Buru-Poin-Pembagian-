@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buru Poin Pembagian - Game Kuis Edukatif SD</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#1E6091',
+                            teal: '#168AAD',
+                            light: '#D9ED92',
+                            green: '#52B788',
+                            yellow: '#FFD166',
+                            coral: '#FF6B6B',
+                            purple: '#7209B7'
+                        }
+                    },
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        poppins: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Canvas Confetti Library for Fireworks -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Fredoka', 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 50%, #fef3c7 100%);
+            min-height: 100vh;
+        }
+
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
+        .active-team-card {
+            border: 4px solid #3b82f6;
+            animation: pulse-border 1.8s infinite;
+            transform: scale(1.05);
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 14px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+
+        .bounce-hover:hover {
+            transform: translateY(-4px);
+            transition: all 0.2s ease;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #93c5fd;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
+
+    <!-- COVER / START SCREEN (SAMPUL GAME) -->
+    <div id="cover-screen" class="fixed inset-0 z-40 bg-gradient-to-br from-blue-600 via-teal-500 to-emerald-500 flex flex-col items-center justify-center p-6 text-center text-white">
+        <div class="max-w-2xl bg-white/15 backdrop-blur-md p-8 md:p-12 rounded-3xl border-4 border-white/30 shadow-2xl flex flex-col items-center gap-6">
+            <div class="w-28 h-28 bg-amber-400 text-amber-950 rounded-3xl flex items-center justify-center text-6xl shadow-xl border-4 border-white animate-bounce">
+                🎯
+            </div>
+            <div>
+                <h1 class="text-4xl md:text-5xl font-black tracking-wide text-yellow-300 drop-shadow-md mb-2">
+                    BURU POIN PEMBAGIAN
+                </h1>
+                <p class="text-lg md:text-xl font-medium text-blue-50">
+                    Kuis Matematika Interaktif Sekolah Dasar untuk 5 Kelompok
+                </p>
+            </div>
+
+            <div class="bg-white/20 p-4 rounded-2xl text-sm md:text-base text-white/90 max-w-md space-y-2 text-left border border-white/20">
+                <p class="font-bold text-yellow-200 text-center text-base">📋 Cara Bermain:</p>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>5 Kelompok akan menjawab soal secara bergiliran.</li>
+                    <li>Pilih jawaban, **kunci jawabanmu**, lalu klik **Periksa Jawaban**.</li>
+                    <li>Jawaban Benar = **+100 Poin** (Soal Bonus **+200 Poin**).</li>
+                    <li>Kelompok dengan poin tertinggi di akhir adalah pemenangnya!</li>
+                </ul>
+            </div>
+
+            <button onclick="startGame()" class="mt-2 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-amber-950 font-black text-xl py-4 px-10 rounded-2xl shadow-2xl transition-all transform hover:scale-105 active:scale-95 flex items-center gap-3">
+                <i class="fa-solid fa-play"></i>
+                <span>Mulai Permainan</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- TOP BAR / HEADER -->
+    <header class="bg-white/90 backdrop-blur-md border-b-4 border-blue-400 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <!-- Game Title & Badge -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-amber-400 to-yellow-300 p-2.5 rounded-2xl shadow-md text-amber-900 flex items-center justify-center">
+                    <i class="fa-solid fa-trophy text-2xl md:text-3xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-blue-900 tracking-wide flex items-center gap-2">
+                        BURU POIN PEMBAGIAN 🎯
+                    </h1>
+                    <p class="text-xs md:text-sm text-slate-500 font-medium">Kuis Matematika Interaktif Sekolah Dasar</p>
+                </div>
+            </div>
+
+            <!-- Header Controls & Progress -->
+            <div class="flex items-center space-x-3">
+                <!-- Music Control Button -->
+                <button id="bgm-toggle-btn" onclick="toggleBGM()" class="bg-amber-100 hover:bg-amber-200 border border-amber-300 text-amber-900 font-bold px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-2 text-xs md:text-sm transition-all">
+                    <i id="bgm-icon" class="fa-solid fa-volume-xmark text-slate-500"></i>
+                    <span id="bgm-text">Musik Off</span>
+                </button>
+
+                <div class="bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-blue-600"></i>
+                    <span class="text-xs md:text-sm font-semibold text-blue-900">Soal: <span id="current-q-num">1</span> / <span id="total-q-num">11</span></span>
+                </div>
+
+                <!-- Teacher Control Button -->
+                <button onclick="toggleTeacherPanel()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold px-4 py-2 rounded-xl shadow-md flex items-center gap-2 text-sm transition-all transform hover:scale-105 active:scale-95">
+                    <i class="fa-solid fa-sliders text-yellow-300"></i>
+                    <span>Kontrol Guru</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow flex flex-col gap-6 w-full">
+
+        <!-- SCOREBOARD SECTION (5 GROUPS) -->
+        <section class="bg-white/80 backdrop-blur-sm p-4 md:p-5 rounded-3xl border-2 border-white/60 shadow-lg">
+            <div class="flex items-center justify-between mb-3 px-1">
+                <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-users-viewfinder text-blue-500"></i> PAPAN SKOR KELOMPOK
+                </h2>
+                <span class="text-xs md:text-sm bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full border border-amber-300">
+                    <i class="fa-solid fa-star text-amber-500 mr-1"></i> Mode Giliran Bergantian
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4" id="scoreboard-container">
+                <!-- Group cards will be generated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- QUIZ CONTENT AREA -->
+        <section class="bg-white rounded-3xl border-2 border-slate-100 shadow-xl overflow-hidden flex flex-col flex-grow">
+            <!-- Question Header Ribbon -->
+            <div id="q-header-ribbon" class="bg-gradient-to-r from-blue-600 to-teal-500 text-white px-6 py-4 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-3">
+                    <span id="q-badge" class="bg-white text-blue-700 font-black px-3.5 py-1 rounded-full text-sm shadow">
+                        SOAL 1
+                    </span>
+                    <span id="bonus-tag" class="hidden bg-yellow-300 text-yellow-950 font-black px-3 py-1 rounded-full text-xs animate-bounce shadow flex items-center gap-1">
+                        ⭐ SOAL BONUS +200 POIN (REBUTAN TOP 3)! ⭐
+                    </span>
+                    <span id="tiebreaker-tag" class="hidden bg-red-500 text-white font-black px-3 py-1 rounded-full text-xs animate-pulse shadow flex items-center gap-1">
+                        ⚡ BABAK REBUTAN PENENTUAN JUARA! ⚡
+                    </span>
+                </div>
+                <div class="flex items-center gap-2 text-sm bg-black/20 px-3 py-1 rounded-lg">
+                    <i class="fa-solid fa-award text-yellow-300"></i>
+                    <span>Nilai: <strong id="q-point-val" class="text-yellow-300 font-extrabold">+100</strong> Poin</span>
+                </div>
+            </div>
+
+            <!-- Question Body -->
+            <div class="p-5 md:p-8 flex-grow flex flex-col justify-between space-y-6">
+                <!-- Question Text & Content Wrapper -->
+                <div>
+                    <!-- Bonus Top 3 Rebutan Selection Stage (Shown BEFORE Question is Revealed) -->
+                    <div id="bonus-rebutan-banner" class="hidden mb-6 p-6 bg-gradient-to-br from-amber-50 via-yellow-100 to-amber-100 border-4 border-amber-400 rounded-3xl shadow-xl text-center">
+                        <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-yellow-300 text-amber-950 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-md mb-3 border-2 border-white animate-bounce">
+                            🏆
+                        </div>
+                        <h4 class="text-xl md:text-2xl font-black text-amber-950 mb-1" id="bonus-rebutan-title">
+                            BABAK REBUTAN SOAL BONUS (+200 POIN)
+                        </h4>
+                        <p class="text-sm font-semibold text-amber-800 mb-4" id="bonus-rebutan-subtitle">
+                            Hanya <strong class="text-amber-950 underline">3 Kelompok Tertinggi</strong> yang berhak merebut giliran ini! Pilih kelompok yang tercepat merebut tombol:
+                        </p>
+
+                        <!-- Top 3 / Tied Teams List -->
+                        <div id="top3-selector-container" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 max-w-2xl mx-auto">
+                            <!-- Dynamic team cards injected here -->
+                        </div>
+
+                        <!-- Reveal Question Button -->
+                        <button onclick="revealBonusQuestion()" class="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-black text-lg py-3.5 px-8 rounded-2xl shadow-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-3 mx-auto border-2 border-white">
+                            <i class="fa-solid fa-eye text-yellow-300"></i>
+                            <span id="reveal-q-btn-text">Buka & Tampilkan Soal Bonus</span>
+                        </button>
+                    </div>
+
+                    <!-- Main Question Content (Hidden for Bonus until Revealed) -->
+                    <div id="question-content-wrapper">
+                        <h3 id="question-text" class="text-xl md:text-2xl lg:text-3xl font-extrabold text-slate-800 leading-relaxed mb-4">
+                            Memuat Pertanyaan...
+                        </h3>
+
+                        <!-- Visual Illustration Box (For Q9, Q10, and extra visual context) -->
+                        <div id="visual-container" class="my-4 p-4 md:p-6 bg-slate-50 border-2 border-dashed border-blue-200 rounded-2xl flex flex-col items-center justify-center min-h-[160px]">
+                            <!-- Dynamic Visual Canvas/SVG insertion -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Answer Options Grid & Action Button -->
+                <div id="options-wrapper" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="options-container">
+                        <!-- Option buttons will be dynamically injected -->
+                    </div>
+
+                    <!-- Navigation & Lock/Check Answer Buttons -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                        <!-- Back Button -->
+                        <button id="prev-q-btn" onclick="prevQuestion()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-2xl shadow-sm transition-all flex items-center gap-2 text-sm md:text-base border border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>Sebelumnya</span>
+                        </button>
+
+                        <!-- Lock / Check Answer Button -->
+                        <button id="check-answer-btn" disabled onclick="checkAnswer()" class="flex-1 md:flex-initial bg-slate-200 text-slate-400 font-extrabold text-base md:text-lg py-3.5 px-6 md:px-8 rounded-2xl shadow transition-all duration-200 flex items-center justify-center gap-2 md:gap-3 cursor-not-allowed">
+                            <i class="fa-solid fa-lock"></i>
+                            <span id="check-btn-text">Pilih Jawaban Terlebih Dahulu</span>
+                        </button>
+
+                        <!-- Next Button -->
+                        <button id="next-q-btn" onclick="skipToNextQuestion()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-5 rounded-2xl shadow-md transition-all flex items-center gap-2 text-sm md:text-base">
+                            <span id="next-btn-text">Selanjutnya</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- RESULT & EXPLANATION MODAL POPUP -->
+    <div id="result-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden transition-all duration-300">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl border-4 border-white transform scale-95 transition-all" id="modal-content-box">
+            <!-- Header Icon & Status -->
+            <div class="text-center mb-4">
+                <div id="result-icon-bg" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-3 shadow-lg">
+                    <!-- Icon injected here -->
+                </div>
+                <h3 id="result-title" class="text-2xl md:text-3xl font-black mb-1">
+                    Wah kamu hebat!
+                </h3>
+                <p id="result-subtitle" class="text-slate-600 font-semibold text-sm md:text-base">
+                    Kelompok 1 berhasil mendapatkan +100 poin
+                </p>
+            </div>
+
+            <!-- Explanation Box -->
+            <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 mb-6">
+                <div class="flex items-center gap-2 text-blue-700 font-bold text-sm mb-1">
+                    <i class="fa-solid fa-lightbulb text-amber-500 text-base"></i> Penjelasan Soal:
+                </div>
+                <p id="result-explanation" class="text-slate-700 text-sm md:text-base leading-relaxed">
+                    Pembahasan jawaban akan muncul di sini.
+                </p>
+            </div>
+
+            <!-- Action Button -->
+            <button id="next-question-btn" onclick="nextTurnAndQuestion()" class="w-full bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white font-extrabold text-lg py-3.5 px-6 rounded-2xl shadow-lg transition-all transform hover:scale-102 active:scale-95 flex items-center justify-center gap-2">
+                <span>Soal & Giliran Berikutnya</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- END GAME WINNER MODAL -->
+    <div id="winner-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 md:p-8 shadow-2xl text-center border-4 border-yellow-300 max-h-[90vh] overflow-y-auto">
+            <div class="w-24 h-24 bg-gradient-to-tr from-amber-400 to-yellow-300 text-amber-900 rounded-full flex items-center justify-center text-5xl mx-auto shadow-xl mb-4 border-4 border-white animate-bounce">
+                👑
+            </div>
+            <h2 class="text-3xl md:text-4xl font-black text-slate-800 mb-2">
+                PERMAINAN SELESAI! 🎉
+            </h2>
+            <p class="text-slate-600 mb-3 font-medium">Berikut adalah Klasemen Akhir & Diagram Batang Poin:</p>
+
+            <!-- WINNER APPRECIATION BANNER -->
+            <div class="bg-gradient-to-r from-amber-100 via-yellow-100 to-amber-100 border-2 border-yellow-400 rounded-2xl p-4 md:p-5 my-4 text-amber-950 text-center shadow-sm">
+                <p class="font-extrabold text-lg md:text-xl text-amber-900 mb-1 flex items-center justify-center gap-2">
+                    <span>🎉</span> Selamat untuk tim pemenang! <span>🎉</span>
+                </p>
+                <p id="winner-team-name-badge" class="font-black text-xl md:text-2xl text-amber-800 my-1 underline decoration-yellow-500 decoration-wavy">
+                    <!-- Winner team name injected here -->
+                </p>
+                <p class="text-sm md:text-base font-semibold leading-relaxed text-amber-950 mt-2">
+                    Kalian hebat! Kalian sudah bekerja sama dan menjawab soal dengan baik. Terima kasih sudah bermain dengan semangat dan jujur.
+                </p>
+                <p class="text-xs md:text-sm font-bold text-amber-800 mt-2">
+                    Tetap semangat belajar dan terus bekerja sama, ya! 👏🏆
+                </p>
+            </div>
+
+            <!-- DIAGRAM BATANG SKOR AKHIR -->
+            <div class="bg-slate-50 border-2 border-blue-200 rounded-2xl p-4 md:p-6 mb-6">
+                <h3 class="text-base font-extrabold text-blue-900 mb-4 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-chart-column text-blue-600"></i> Diagram Batang Perolehan Poin
+                </h3>
+                <div id="bar-chart-container" class="h-60 flex items-end justify-between gap-2 md:gap-4 pt-8 pb-2 px-2 border-b-2 border-slate-300 relative">
+                    <!-- Bars will be generated dynamically -->
+                </div>
+            </div>
+
+            <div id="final-leaderboard" class="space-y-3 mb-8">
+                <!-- Leaderboard ranking generated dynamically -->
+            </div>
+
+            <button onclick="resetGame()" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-extrabold text-lg py-4 px-8 rounded-2xl shadow-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2 mx-auto">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>Mainkan Lagi Dari Awal</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- TEACHER CONTROL PANEL (MODAL / DRAWER) -->
+    <div id="teacher-panel" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-end hidden">
+        <div class="bg-white w-full max-w-md h-full shadow-2xl p-6 flex flex-col justify-between overflow-y-auto border-l-4 border-purple-600">
+            <div>
+                <!-- Panel Header -->
+                <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-purple-100 text-purple-700 p-2.5 rounded-xl">
+                            <i class="fa-solid fa-sliders text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-extrabold text-slate-800">Panel Kontrol Guru</h3>
+                            <p class="text-xs text-slate-500">Kelola poin, turn, dan jalannya kuis</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleTeacherPanel()" class="text-slate-400 hover:text-slate-700 text-2xl p-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Control Sections -->
+                <div class="space-y-6">
+
+                    <!-- 1. Edit Points Manually -->
+                    <div class="bg-purple-50/70 border border-purple-200 rounded-2xl p-4">
+                        <h4 class="font-extrabold text-purple-900 text-sm mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit Poin Kelompok Manual
+                        </h4>
+                        <div class="space-y-2.5" id="teacher-point-controls">
+                            <!-- Team inputs generated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- 2. Change Active Turn -->
+                    <div class="bg-blue-50/70 border border-blue-200 rounded-2xl p-4">
+                        <h4 class="font-extrabold text-blue-900 text-sm mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-user-check"></i> Pilih Kelompok Giliran Aktif
+                        </h4>
+                        <div class="grid grid-cols-2 gap-2" id="teacher-turn-buttons">
+                            <!-- Group turn select buttons -->
+                        </div>
+                    </div>
+
+                    <!-- 3. Jump Question -->
+                    <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4">
+                        <h4 class="font-extrabold text-amber-900 text-sm mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-forward-step"></i> Pindah Ke Soal Tertentu
+                        </h4>
+                        <div class="grid grid-cols-4 gap-2" id="teacher-q-jump">
+                            <!-- Question jump buttons -->
+                        </div>
+                    </div>
+
+                    <!-- 4. Quick Actions -->
+                    <div class="space-y-2.5">
+                        <button onclick="skipQuestion()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-all">
+                            <i class="fa-solid fa-forward text-slate-500"></i> Lewati Soal Ini (Skip)
+                        </button>
+
+                        <button onclick="confirmResetGame()" class="w-full bg-red-100 hover:bg-red-200 text-red-700 font-bold py-2.5 px-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-all">
+                            <i class="fa-solid fa-rotate-left text-red-500"></i> Reset Seluruh Game & Skor
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-6 border-t border-slate-200 mt-6 text-center">
+                <button onclick="toggleTeacherPanel()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl shadow">
+                    Tutup Panel Kontrol
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- GAME DATA QUESTIONS ---
+        const questions = [
+            {
+                id: 1,
+                point: 100,
+                isBonus: false,
+                text: "Pembagian adalah ....",
+                options: [
+                    { letter: "A", text: "Pengurangan berulang", correct: true },
+                    { letter: "B", text: "Penjumlahan berulang", correct: false },
+                    { letter: "C", text: "Perkalian berulang", correct: false },
+                    { letter: "D", text: "Menggabungkan bilangan", correct: false }
+                ],
+                explanation: "Pembagian dapat dipahami sebagai pengurangan berulang dengan jumlah yang sama sampai habis. Misalnya, 12 : 3 dapat dipahami sebagai 12 − 3 − 3 − 3 − 3 = 0."
+            },
+            {
+                id: 2,
+                point: 100,
+                isBonus: false,
+                text: "Tanda bagi dalam kalimat matematika adalah ....",
+                options: [
+                    { letter: "A", text: "+", correct: false },
+                    { letter: "B", text: "−", correct: false },
+                    { letter: "C", text: ":", correct: true },
+                    { letter: "D", text: "×", correct: false }
+                ],
+                explanation: "Tanda \":\" digunakan untuk menunjukkan operasi pembagian. Contohnya, 12 : 3 = 4."
+            },
+            {
+                id: 3,
+                point: 100,
+                isBonus: false,
+                text: "Ibu mempunyai 12 permen. Permen tersebut akan dibagikan sama banyak kepada 3 anak. Berapa permen yang diterima setiap anak?",
+                options: [
+                    { letter: "A", text: "3 permen", correct: false },
+                    { letter: "B", text: "4 permen", correct: true },
+                    { letter: "C", text: "5 permen", correct: false },
+                    { letter: "D", text: "6 permen", correct: false }
+                ],
+                explanation: "12 permen dibagikan kepada 3 anak dengan jumlah yang sama. Jadi, 12 : 3 = 4. Setiap anak mendapat 4 permen."
+            },
+            {
+                id: 4,
+                point: 100,
+                isBonus: false,
+                text: "Budi memiliki 18 permen. Ia membagikan permen tersebut sama banyak kepada 3 anak. Berapa permen yang diterima setiap anak?",
+                options: [
+                    { letter: "A", text: "4 permen", correct: false },
+                    { letter: "B", text: "5 permen", correct: false },
+                    { letter: "C", text: "6 permen", correct: true },
+                    { letter: "D", text: "7 permen", correct: false }
+                ],
+                explanation: "18 permen dibagikan kepada 3 anak. Jadi, 18 : 3 = 6. Setiap anak mendapat 6 permen."
+            },
+            {
+                id: 5,
+                point: 100,
+                isBonus: false,
+                text: "Lala mempunyai 30 permen. Ia membagikan semua permen sama banyak kepada 5 anak. Berapa permen yang diterima setiap anak?",
+                options: [
+                    { letter: "A", text: "4 permen", correct: false },
+                    { letter: "B", text: "5 permen", correct: false },
+                    { letter: "C", text: "6 permen", correct: true },
+                    { letter: "D", text: "7 permen", correct: false }
+                ],
+                explanation: "30 permen dibagikan kepada 5 anak. Jadi, 30 : 5 = 6. Setiap anak mendapat 6 permen."
+            },
+            {
+                id: 6,
+                point: 100,
+                isBonus: false,
+                text: "Rani mempunyai 10 permen. Ia membagikan permen tersebut sama banyak kepada 2 anak. Berapa permen yang diterima setiap anak?",
+                options: [
+                    { letter: "A", text: "4 permen", correct: false },
+                    { letter: "B", text: "5 permen", correct: true },
+                    { letter: "C", text: "6 permen", correct: false }
+                ],
+                explanation: "10 permen dibagikan kepada 2 anak. Jadi, 10 : 2 = 5. Setiap anak mendapat 5 permen."
+            },
+            {
+                id: 7,
+                point: 100,
+                isBonus: false,
+                text: "Dika mempunyai 12 permen. Ia membagikan semua permen sama banyak kepada 3 anak. Berapa permen yang diterima setiap anak?",
+                options: [
+                    { letter: "A", text: "3 permen", correct: false },
+                    { letter: "B", text: "4 permen", correct: true },
+                    { letter: "C", text: "5 permen", correct: false }
+                ],
+                explanation: "12 : 3 = 4. Setiap anak mendapat 4 permen."
+            },
+            {
+                id: 8,
+                point: 100,
+                isBonus: false,
+                text: "Lina mempunyai 8 permen. Ia membagikan permen sama banyak kepada 2 teman. Berapa permen yang diterima setiap teman?",
+                options: [
+                    { letter: "A", text: "3 permen", correct: false },
+                    { letter: "B", text: "4 permen", correct: true },
+                    { letter: "C", text: "5 permen", correct: false }
+                ],
+                explanation: "8 : 2 = 4. Setiap teman mendapat 4 permen."
+            },
+            {
+                id: 9,
+                point: 100,
+                isBonus: false,
+                type: "visual-candy-box",
+                text: "Perhatikan gambar di bawah, ada 8 permen. Jika kamu memberi 2 permen untuk setiap anak, berapa banyak anak yang mendapatkan permen?",
+                options: [
+                    { letter: "A", text: "2 anak", correct: false },
+                    { letter: "B", text: "3 anak", correct: false },
+                    { letter: "C", text: "4 anak", correct: true },
+                    { letter: "D", text: "5 anak", correct: false }
+                ],
+                explanation: "Kalimat matematikanya adalah 8 : 2 = 4. Jadi ada 4 anak yang mendapatkan permen."
+            },
+            {
+                id: 10,
+                point: 100,
+                isBonus: false,
+                type: "visual-chocolates-kids",
+                text: "Perhatikan gambar di bawah, ada 8 cokelat yang akan dibagikan kepada anak-anak seperti gambar di bawah ini. Berapa banyak cokelat yang diberikan kepada setiap anak?",
+                options: [
+                    { letter: "A", text: "2 cokelat", correct: true },
+                    { letter: "B", text: "3 cokelat", correct: false },
+                    { letter: "C", text: "4 cokelat", correct: false },
+                    { letter: "D", text: "5 cokelat", correct: false }
+                ],
+                explanation: "8 cokelat dibagi sama banyak kepada 4 anak. Kalimat matematikanya adalah 8 : 4 = 2. Setiap anak mendapat 2 cokelat."
+            },
+            {
+                id: 11,
+                point: 200,
+                isBonus: true,
+                type: "visual-bonus-candy",
+                text: "🌟 SOAL BONUS (+200 Poin) 🌟 Siti memiliki 20 permen. Ia membagikan permen tersebut kepada 4 piring sama banyak. Berapa permen di setiap piring?",
+                options: [
+                    { letter: "A", text: "3 permen", correct: false },
+                    { letter: "B", text: "4 permen", correct: false },
+                    { letter: "C", text: "5 permen", correct: true },
+                    { letter: "D", text: "6 permen", correct: false }
+                ],
+                explanation: "Selamat! Soal bonus memberikan poin ekstra (+200)! 20 : 4 = 5. Setiap piring berisi 5 permen."
+            }
+        ];
+
+        const tieBreakerQuestions = [
+            {
+                id: "REBUTAN 1",
+                point: 100,
+                isTieBreaker: true,
+                type: "visual-rebutan-1",
+                text: "⚡ SOAL REBUTAN 1: Perhatikan gambar di bawah, ada 12 permen. Jika kamu memberi 3 permen untuk setiap anak, berapa banyak anak yang mendapatkan permen?",
+                options: [
+                    { letter: "A", text: "3 anak", correct: false },
+                    { letter: "B", text: "4 anak", correct: true },
+                    { letter: "C", text: "5 anak", correct: false },
+                    { letter: "D", text: "6 anak", correct: false }
+                ],
+                explanation: "12 permen dibagi 3 permen per anak. Kalimat matematikanya adalah 12 : 3 = 4. Jadi ada 4 anak yang mendapatkan permen."
+            },
+            {
+                id: "REBUTAN 2",
+                point: 100,
+                isTieBreaker: true,
+                type: "visual-rebutan-2",
+                text: "⚡ SOAL REBUTAN 2: Perhatikan gambar di bawah, ada 12 permen yang akan dibagikan kepada 3 anak. Berapa banyak permen yang diberikan kepada setiap anak?",
+                options: [
+                    { letter: "A", text: "3 permen", correct: false },
+                    { letter: "B", text: "4 permen", correct: true },
+                    { letter: "C", text: "5 permen", correct: false },
+                    { letter: "D", text: "6 permen", correct: false }
+                ],
+                explanation: "12 permen dibagikan sama banyak kepada 3 anak. Kalimat matematikanya adalah 12 : 3 = 4. Setiap anak mendapat 4 permen."
+            },
+            {
+                id: "REBUTAN 3",
+                point: 100,
+                isTieBreaker: true,
+                type: "visual-rebutan-3",
+                text: "⚡ SOAL REBUTAN 3: Perhatikan gambar di bawah, ada 15 permen. Jika kamu memberi 3 permen untuk setiap anak, berapa banyak anak yang mendapatkan permen?",
+                options: [
+                    { letter: "A", text: "4 anak", correct: false },
+                    { letter: "B", text: "5 anak", correct: true },
+                    { letter: "C", text: "6 anak", correct: false },
+                    { letter: "D", text: "7 anak", correct: false }
+                ],
+                explanation: "15 permen dibagi 3 permen per anak. Kalimat matematikanya adalah 15 : 3 = 5. Jadi ada 5 anak yang mendapatkan permen."
+            },
+            {
+                id: "REBUTAN 4",
+                point: 100,
+                isTieBreaker: true,
+                type: "visual-rebutan-4",
+                text: "⚡ SOAL REBUTAN 4: Perhatikan gambar di bawah, ada 16 permen yang akan dibagikan kepada 4 anak. Berapa banyak permen yang diberikan kepada setiap anak?",
+                options: [
+                    { letter: "A", text: "3 permen", correct: false },
+                    { letter: "B", text: "4 permen", correct: true },
+                    { letter: "C", text: "5 permen", correct: false },
+                    { letter: "D", text: "6 permen", correct: false }
+                ],
+                explanation: "16 permen dibagikan sama banyak kepada 4 anak. Kalimat matematikanya adalah 16 : 4 = 4. Setiap anak mendapat 4 permen."
+            }
+        ];
+
+        // --- GAME STATE ---
+        let groups = [
+            { id: 1, name: "Kelompok 1", score: 0, color: "from-blue-500 to-cyan-500", border: "border-blue-400" },
+            { id: 2, name: "Kelompok 2", score: 0, color: "from-emerald-500 to-green-500", border: "border-emerald-400" },
+            { id: 3, name: "Kelompok 3", score: 0, color: "from-amber-500 to-yellow-500", border: "border-amber-400" },
+            { id: 4, name: "Kelompok 4", score: 0, color: "from-purple-500 to-violet-500", border: "border-purple-400" },
+            { id: 5, name: "Kelompok 5", score: 0, color: "from-rose-500 to-pink-500", border: "border-rose-400" }
+        ];
+
+        let currentQuestionIndex = 0;
+        let currentGroupIndex = 0; // Turn index 0 to 4
+        let answerSubmitted = false;
+        let selectedOptionData = null;
+        let bonusQuestionRevealed = false;
+
+        let isTieBreakerMode = false;
+        let tieBreakerIndex = 0;
+
+        function getTopScore() {
+            return Math.max(...groups.map(g => g.score));
+        }
+
+        function hasTopScoreTie() {
+            const maxScore = getTopScore();
+            if (maxScore <= 0) return false;
+            const topGroups = groups.filter(g => g.score === maxScore);
+            return topGroups.length > 1;
+        }
+
+        function getTiedTopGroups() {
+            const maxScore = getTopScore();
+            return groups.filter(g => g.score === maxScore);
+        }
+
+        // --- START GAME FROM COVER ---
+        function startGame() {
+            document.getElementById('cover-screen').classList.add('hidden');
+            if (!isBgmPlaying) {
+                startBGM();
+            }
+        }
+
+        // --- BACKGROUND MUSIC SYNTHESIZER ---
+        let bgmAudioCtx = null;
+        let isBgmPlaying = false;
+        let bgmTimer = null;
+        let bgmNoteIndex = 0;
+
+        // Energetic and challenging game melody sequence
+        const bgmNotes = [
+            261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 349.23, 440.00,
+            261.63, 329.63, 392.00, 523.25, 587.33, 523.25, 392.00, 329.63,
+            220.00, 277.18, 329.63, 440.00, 329.63, 277.18, 293.66, 369.99,
+            246.94, 311.13, 369.99, 493.88, 440.00, 392.00, 349.23, 329.63
+        ];
+
+        const bgmBass = [
+            130.81, 130.81, 174.61, 174.61,
+            130.81, 130.81, 196.00, 196.00,
+            110.00, 110.00, 146.83, 146.83,
+            123.47, 123.47, 130.81, 196.00
+        ];
+
+        function toggleBGM() {
+            if (isBgmPlaying) {
+                stopBGM();
+            } else {
+                startBGM();
+            }
+        }
+
+        function startBGM() {
+            if (!bgmAudioCtx) {
+                bgmAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (bgmAudioCtx.state === 'suspended') {
+                bgmAudioCtx.resume();
+            }
+            isBgmPlaying = true;
+            const btn = document.getElementById('bgm-toggle-btn');
+            const icon = document.getElementById('bgm-icon');
+            const text = document.getElementById('bgm-text');
+
+            if (btn && icon && text) {
+                icon.className = 'fa-solid fa-volume-high text-emerald-600 animate-pulse';
+                text.innerText = 'Musik On 🎵';
+                btn.className = 'bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 text-emerald-900 font-bold px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-2 text-xs md:text-sm transition-all';
+            }
+
+            if (!bgmTimer) {
+                bgmNoteIndex = 0;
+                bgmTimer = setInterval(playBgmStep, 150);
+            }
+        }
+
+        function stopBGM() {
+            isBgmPlaying = false;
+            if (bgmTimer) {
+                clearInterval(bgmTimer);
+                bgmTimer = null;
+            }
+            const btn = document.getElementById('bgm-toggle-btn');
+            const icon = document.getElementById('bgm-icon');
+            const text = document.getElementById('bgm-text');
+
+            if (btn && icon && text) {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+                text.innerText = 'Musik Off';
+                btn.className = 'bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-bold px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-2 text-xs md:text-sm transition-all';
+            }
+        }
+
+        function playBgmStep() {
+            if (!bgmAudioCtx || !isBgmPlaying) return;
+            const now = bgmAudioCtx.currentTime;
+
+            // Arpeggio Melody Synth
+            const melodyFreq = bgmNotes[bgmNoteIndex % bgmNotes.length];
+            const osc = bgmAudioCtx.createOscillator();
+            const gain = bgmAudioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(melodyFreq, now);
+            gain.gain.setValueAtTime(0.04, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+            osc.connect(gain);
+            gain.connect(bgmAudioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.15);
+
+            // Driving Bassline synth
+            if (bgmNoteIndex % 2 === 0) {
+                const bassFreq = bgmBass[(Math.floor(bgmNoteIndex / 2)) % bgmBass.length];
+                const bassOsc = bgmAudioCtx.createOscillator();
+                const bassGain = bgmAudioCtx.createGain();
+                bassOsc.type = 'sine';
+                bassOsc.frequency.setValueAtTime(bassFreq, now);
+                bassGain.gain.setValueAtTime(0.07, now);
+                bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+                bassOsc.connect(bassGain);
+                bassGain.connect(bgmAudioCtx.destination);
+                bassOsc.start(now);
+                bassOsc.stop(now + 0.3);
+            }
+
+            bgmNoteIndex++;
+        }
+
+        // --- AUDIO SYNTHESIZERS (NO EXTERNAL AUDIO DEPENDENCY) ---
+        function playChime(isCorrect) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const now = ctx.currentTime;
+                if (isCorrect) {
+                    // Happy chord (C5, E5, G5, C6)
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.5);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + idx * 0.08);
+                        osc.stop(now + idx * 0.08 + 0.6);
+                    });
+                } else {
+                    // Wobble wrong pitch
+                    [311.13, 293.66].forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.15);
+                        gain.gain.setValueAtTime(0.15, now + idx * 0.15);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.15 + 0.4);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + idx * 0.15);
+                        osc.stop(now + idx * 0.15 + 0.5);
+                    });
+                }
+            } catch(e) { console.log('Audio Context muted'); }
+        }
+
+        // --- FIREWORKS / CONFETTI EFFECTS ---
+        function triggerFireworks(isCorrect) {
+            if (typeof confetti !== 'function') return;
+
+            if (isCorrect) {
+                // BLUE FIREWORKS
+                const blueColors = ['#1E40AF', '#3B82F6', '#60A5FA', '#93C5FD', '#00FFFF', '#2563EB'];
+                confetti({
+                    particleCount: 80,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: blueColors
+                });
+
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 50,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: blueColors
+                    });
+                    confetti({
+                        particleCount: 50,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: blueColors
+                    });
+                }, 200);
+            } else {
+                // RED FIREWORKS
+                const redColors = ['#991B1B', '#DC2626', '#EF4444', '#F87171', '#FCA5A5', '#7F1D1D'];
+                confetti({
+                    particleCount: 80,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: redColors
+                });
+
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 40,
+                        spread: 60,
+                        origin: { y: 0.7 },
+                        colors: redColors
+                    });
+                }, 200);
+            }
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            renderScoreboard();
+            renderQuestion();
+            renderTeacherControls();
+        };
+
+        // --- RENDER SCOREBOARD ---
+        function renderScoreboard() {
+            const container = document.getElementById('scoreboard-container');
+            container.innerHTML = '';
+
+            groups.forEach((group, idx) => {
+                const isActive = idx === currentGroupIndex;
+                const card = document.createElement('div');
+                card.className = `rounded-2xl p-3 md:p-4 text-white bg-gradient-to-br ${group.color} transition-all duration-300 relative shadow-md ${isActive ? 'active-team-card z-10' : 'opacity-85 hover:opacity-100'}`;
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs md:text-sm font-extrabold uppercase tracking-wider">${group.name}</span>
+                        ${isActive ? '<span class="bg-yellow-300 text-yellow-950 text-[10px] md:text-xs px-2 py-0.5 rounded-full font-black animate-pulse shadow"><i class="fa-solid fa-play"></i> GILIRAN</span>' : ''}
+                    </div>
+                    <div class="flex items-baseline justify-between mt-2">
+                        <span class="text-2xl md:text-3xl font-black">${group.score}</span>
+                        <span class="text-xs opacity-90 font-medium">Poin</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- RENDER VISUAL ILLUSTRATIONS FOR SPECIAL QUESTIONS ---
+        function renderVisualContent(q) {
+            const visualBox = document.getElementById('visual-container');
+            visualBox.innerHTML = '';
+
+            if (q.type === 'visual-candy-box' || q.type === 'visual-rebutan-1' || q.type === 'visual-rebutan-3') {
+                // Determine counts based on question type
+                const totalCandy = q.type === 'visual-rebutan-1' ? 12 : (q.type === 'visual-rebutan-3' ? 15 : 8);
+                const candyPerChildVal = (q.type === 'visual-candy-box') ? 2 : 3;
+
+                visualBox.classList.remove('hidden');
+                visualBox.innerHTML = `
+                    <div class="w-full flex flex-col items-center gap-4">
+                        <!-- Colorful Candies -->
+                        <div class="flex flex-wrap justify-center gap-2.5 p-3 bg-white rounded-xl shadow-inner border border-amber-200 max-w-lg">
+                            ${Array(totalCandy).fill(0).map((_, i) => `
+                                <div class="w-9 h-9 md:w-11 md:h-11 bg-gradient-to-tr ${getCandyColor(i)} rounded-full shadow-md border-2 border-white flex items-center justify-center transform hover:rotate-12 transition-all">
+                                    <span class="text-base md:text-lg">🍬</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <p class="text-xs text-slate-500 font-semibold">(Ada ${totalCandy} Permen Warna-Warni)</p>
+
+                        <!-- Mathematical Equation Scheme -->
+                        <div class="flex flex-wrap items-center justify-center gap-2 md:gap-4 bg-blue-50 p-3 rounded-2xl border-2 border-blue-200">
+                            <!-- Box 1 -->
+                            <div class="text-center">
+                                <div class="w-14 h-12 md:w-16 md:h-14 bg-white border-2 border-blue-500 rounded-xl flex items-center justify-center text-xl font-black text-blue-800 shadow-sm">
+                                    ${totalCandy}
+                                </div>
+                                <span class="text-[11px] md:text-xs font-bold text-blue-900 mt-1 block">Banyak permen</span>
+                            </div>
+
+                            <span class="text-2xl font-black text-blue-600 mb-5">:</span>
+
+                            <!-- Box 2 -->
+                            <div class="text-center">
+                                <div class="w-14 h-12 md:w-16 md:h-14 bg-white border-2 border-green-500 rounded-xl flex items-center justify-center text-xl font-black text-green-800 shadow-sm">
+                                    ${candyPerChildVal}
+                                </div>
+                                <span class="text-[11px] md:text-xs font-bold text-green-900 mt-1 block">Banyak permen<br>tiap anak</span>
+                            </div>
+
+                            <span class="text-2xl font-black text-blue-600 mb-5">=</span>
+
+                            <!-- Box 3 -->
+                            <div class="text-center">
+                                <div class="w-14 h-12 md:w-16 md:h-14 bg-amber-100 border-2 border-amber-500 rounded-xl flex items-center justify-center text-2xl font-black text-amber-800 shadow-sm animate-pulse">
+                                    ?
+                                </div>
+                                <span class="text-[11px] md:text-xs font-bold text-amber-900 mt-1 block">Banyak anak</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (q.type === 'visual-chocolates-kids' || q.type === 'visual-rebutan-2' || q.type === 'visual-rebutan-4') {
+                const totalCandies = q.type === 'visual-rebutan-2' ? 12 : (q.type === 'visual-rebutan-4' ? 16 : 8);
+                const numKids = q.type === 'visual-rebutan-2' ? 3 : 4;
+                const itemLabel = q.type === 'visual-chocolates-kids' ? 'Cokelat' : 'Permen';
+                const itemEmoji = q.type === 'visual-chocolates-kids' ? '🍫' : '🍬';
+
+                visualBox.classList.remove('hidden');
+                visualBox.innerHTML = `
+                    <div class="w-full flex flex-col items-center gap-4">
+                        <!-- Items -->
+                        <div class="flex items-center gap-3 bg-amber-900/10 p-3 rounded-xl border border-amber-300">
+                            <span class="text-xs md:text-sm font-bold text-amber-900 mr-1">${totalCandies} ${itemLabel}:</span>
+                            <div class="flex flex-wrap justify-center gap-2 max-w-md">
+                                ${Array(totalCandies).fill(0).map((_, i) => `
+                                    <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-tr ${getCandyColor(i)} rounded-lg shadow border-2 border-white flex items-center justify-center text-xs md:text-sm font-bold">
+                                        ${itemEmoji}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Kids with Empty Plates -->
+                        <div class="grid grid-cols-2 sm:grid-cols-${numKids} gap-3 md:gap-4 w-full max-w-xl">
+                            ${Array(numKids).fill(0).map((_, kIdx) => `
+                                <div class="bg-white p-3 rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col items-center">
+                                    <span class="text-3xl mb-1">${['👧🏻', '👦🏽', '👧🏽', '👦🏻', '👧🏼'][kIdx % 5]}</span>
+                                    <span class="text-xs font-bold text-slate-700">Anak ${kIdx + 1}</span>
+                                    <!-- Plate -->
+                                    <div class="w-full h-8 mt-2 bg-slate-100 border-2 border-slate-300 rounded-full flex items-center justify-center shadow-inner">
+                                        <span class="text-[10px] text-slate-400 font-semibold">Piring</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (q.type === 'visual-bonus-candy') {
+                // Question 11 Illustration (20 candies to 4 plates)
+                visualBox.classList.remove('hidden');
+                visualBox.innerHTML = `
+                    <div class="w-full flex flex-col items-center gap-3">
+                        <div class="bg-gradient-to-r from-amber-100 to-yellow-100 border-2 border-yellow-400 p-3 rounded-2xl text-center">
+                            <span class="text-sm font-bold text-amber-900">🍬 Total 20 Permen akan dibagikan ke 4 Piring sama banyak:</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-lg">
+                            ${[1, 2, 3, 4].map(p => `
+                                <div class="bg-white p-3 rounded-2xl border-2 border-amber-200 text-center shadow-sm">
+                                    <span class="text-xs font-bold text-amber-800">Piring #${p}</span>
+                                    <div class="w-full h-12 bg-amber-50 rounded-full border-2 border-amber-300 mt-1 flex items-center justify-center text-xl">
+                                        🍽️
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Default question visual decoration
+                visualBox.classList.add('hidden');
+            }
+        }
+
+        function getCandyColor(i) {
+            const colors = [
+                'from-pink-400 to-rose-500',
+                'from-yellow-400 to-amber-500',
+                'from-purple-400 to-indigo-500',
+                'from-teal-400 to-emerald-500',
+                'from-blue-400 to-cyan-500',
+                'from-orange-400 to-red-500',
+                'from-fuchsia-400 to-pink-500',
+                'from-lime-400 to-green-500'
+            ];
+            return colors[i % colors.length];
+        }
+
+        // --- RENDER CURRENT QUESTION ---
+        function renderQuestion() {
+            answerSubmitted = false;
+            selectedOptionData = null;
+
+            // Determine active question set
+            const q = isTieBreakerMode ? tieBreakerQuestions[tieBreakerIndex] : questions[currentQuestionIndex];
+
+            // Update Back and Next navigation buttons
+            const prevBtn = document.getElementById('prev-q-btn');
+            const nextText = document.getElementById('next-btn-text');
+
+            if (prevBtn) {
+                prevBtn.disabled = isTieBreakerMode || (currentQuestionIndex === 0);
+            }
+            if (nextText) {
+                if (isTieBreakerMode) {
+                    nextText.innerText = (tieBreakerIndex === tieBreakerQuestions.length - 1) ? "Selesai" : "Soal Rebutan Berikutnya";
+                } else {
+                    nextText.innerText = (currentQuestionIndex === questions.length - 1) ? "Selesai" : "Selanjutnya";
+                }
+            }
+
+            // Reset check answer button state
+            const checkBtn = document.getElementById('check-answer-btn');
+            checkBtn.disabled = true;
+            checkBtn.className = "flex-1 md:flex-initial bg-slate-200 text-slate-400 font-extrabold text-base md:text-lg py-3.5 px-6 md:px-8 rounded-2xl shadow transition-all duration-200 flex items-center justify-center gap-2 md:gap-3 cursor-not-allowed";
+            document.getElementById('check-btn-text').innerText = "Pilih Jawaban Terlebih Dahulu";
+            checkBtn.querySelector('i').className = "fa-solid fa-lock";
+
+            // Header Ribbon updates
+            document.getElementById('current-q-num').innerText = isTieBreakerMode ? `R-${tieBreakerIndex + 1}` : q.id;
+            document.getElementById('total-q-num').innerText = isTieBreakerMode ? `${tieBreakerQuestions.length} (Rebutan)` : questions.length;
+            document.getElementById('q-badge').innerText = isTieBreakerMode ? `SOAL REBUTAN ${tieBreakerIndex + 1}` : `SOAL ${q.id}`;
+            document.getElementById('q-point-val').innerText = `+${q.point}`;
+
+            const bonusTag = document.getElementById('bonus-tag');
+            const tiebreakerTag = document.getElementById('tiebreaker-tag');
+            const bonusRebutanBanner = document.getElementById('bonus-rebutan-banner');
+            const questionWrapper = document.getElementById('question-content-wrapper');
+            const optionsWrapper = document.getElementById('options-wrapper');
+
+            if (isTieBreakerMode) {
+                bonusTag.classList.add('hidden');
+                tiebreakerTag.classList.remove('hidden');
+                bonusRebutanBanner.classList.remove('hidden');
+
+                document.getElementById('bonus-rebutan-title').innerText = "⚡ BABAK REBUTAN PENENTUAN JUARA";
+                document.getElementById('bonus-rebutan-subtitle').innerHTML = "Ada skor seri untuk posisi tertinggi! Pilih kelompok seri yang menjawab soal ini:";
+                document.getElementById('reveal-q-btn-text').innerText = "Buka & Tampilkan Soal Rebutan";
+
+                const tiedGroups = getTiedTopGroups();
+                const top3Box = document.getElementById('top3-selector-container');
+                top3Box.innerHTML = '';
+
+                tiedGroups.forEach((team) => {
+                    const originalIdx = groups.findIndex(g => g.id === team.id);
+                    const isCurrent = originalIdx === currentGroupIndex;
+                    const card = document.createElement('div');
+                    card.className = `p-4 rounded-2xl border-4 text-center cursor-pointer transition-all ${
+                        isCurrent 
+                        ? 'bg-amber-400 border-amber-600 text-amber-950 font-black shadow-lg scale-105 ring-4 ring-yellow-200' 
+                        : 'bg-white border-amber-200 text-amber-900 font-bold hover:bg-amber-50'
+                    }`;
+                    card.innerHTML = `
+                        <div class="text-2xl mb-1">⚡</div>
+                        <div class="text-base font-black">${team.name}</div>
+                        <div class="text-xs opacity-90 mt-1 bg-black/10 rounded-lg py-0.5 px-2 inline-block">${team.score} Poin</div>
+                        <div class="text-[11px] font-bold mt-2 ${isCurrent ? 'text-amber-950' : 'text-amber-600'}">
+                            ${isCurrent ? '✓ Terpilih Menjawab' : 'Klik untuk Pilih'}
+                        </div>
+                    `;
+                    card.onclick = () => {
+                        currentGroupIndex = originalIdx;
+                        renderScoreboard();
+                        renderQuestion();
+                    };
+                    top3Box.appendChild(card);
+                });
+
+                if (!bonusQuestionRevealed) {
+                    questionWrapper.classList.add('hidden');
+                    optionsWrapper.classList.add('hidden');
+                } else {
+                    questionWrapper.classList.remove('hidden');
+                    optionsWrapper.classList.remove('hidden');
+                }
+
+            } else if (q.isBonus) {
+                tiebreakerTag.classList.add('hidden');
+                bonusTag.classList.remove('hidden');
+                bonusRebutanBanner.classList.remove('hidden');
+
+                document.getElementById('bonus-rebutan-title').innerText = "BABAK REBUTAN SOAL BONUS (+200 POIN)";
+                document.getElementById('bonus-rebutan-subtitle').innerHTML = "Hanya <strong class=\"text-amber-950 underline\">3 Kelompok Tertinggi</strong> yang berhak merebut giliran ini! Pilih kelompok yang tercepat merebut tombol:";
+                document.getElementById('reveal-q-btn-text').innerText = "Buka & Tampilkan Soal Bonus";
+
+                // Get Top 3 Groups by Current Score
+                const sortedGroups = groups.map((g, idx) => ({ ...g, originalIdx: idx }))
+                                           .sort((a, b) => b.score - a.score);
+                const top3 = sortedGroups.slice(0, 3);
+                const top3OriginalIndices = top3.map(t => t.originalIdx);
+
+                if (!top3OriginalIndices.includes(currentGroupIndex)) {
+                    currentGroupIndex = top3OriginalIndices[0];
+                    renderScoreboard();
+                }
+
+                const top3Box = document.getElementById('top3-selector-container');
+                top3Box.innerHTML = '';
+                top3.forEach((team, rankIdx) => {
+                    const isCurrent = team.originalIdx === currentGroupIndex;
+                    const rankMedal = rankIdx === 0 ? '🥇' : rankIdx === 1 ? '🥈' : '🥉';
+                    const card = document.createElement('div');
+                    card.className = `p-4 rounded-2xl border-4 text-center cursor-pointer transition-all ${
+                        isCurrent 
+                        ? 'bg-amber-400 border-amber-600 text-amber-950 font-black shadow-lg scale-105 ring-4 ring-yellow-200' 
+                        : 'bg-white border-amber-200 text-amber-900 font-bold hover:bg-amber-50'
+                    }`;
+                    card.innerHTML = `
+                        <div class="text-2xl mb-1">${rankMedal}</div>
+                        <div class="text-base font-black">${team.name}</div>
+                        <div class="text-xs opacity-90 mt-1 bg-black/10 rounded-lg py-0.5 px-2 inline-block">${team.score} Poin</div>
+                        <div class="text-[11px] font-bold mt-2 ${isCurrent ? 'text-amber-950' : 'text-amber-600'}">
+                            ${isCurrent ? '✓ Terpilih Berebut' : 'Klik untuk Pilih'}
+                        </div>
+                    `;
+                    card.onclick = () => {
+                        currentGroupIndex = team.originalIdx;
+                        renderScoreboard();
+                        renderQuestion();
+                    };
+                    top3Box.appendChild(card);
+                });
+
+                if (!bonusQuestionRevealed) {
+                    questionWrapper.classList.add('hidden');
+                    optionsWrapper.classList.add('hidden');
+                } else {
+                    questionWrapper.classList.remove('hidden');
+                    optionsWrapper.classList.remove('hidden');
+                }
+            } else {
+                bonusQuestionRevealed = false;
+                bonusTag.classList.add('hidden');
+                tiebreakerTag.classList.add('hidden');
+                bonusRebutanBanner.classList.add('hidden');
+                questionWrapper.classList.remove('hidden');
+                optionsWrapper.classList.remove('hidden');
+            }
+
+            // Question text
+            document.getElementById('question-text').innerText = q.text;
+
+            // Render Visuals
+            renderVisualContent(q);
+
+            // Render Options
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt) => {
+                const btn = document.createElement('button');
+                btn.dataset.letter = opt.letter;
+                btn.className = "option-btn group w-full bg-slate-50 hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-400 rounded-2xl p-4 text-left transition-all duration-200 flex items-center space-x-4 shadow-sm hover:shadow-md active:scale-98";
+                btn.onclick = () => lockOption(opt, btn);
+
+                btn.innerHTML = `
+                    <div class="opt-badge w-11 h-11 rounded-xl bg-blue-100 group-hover:bg-blue-600 text-blue-700 group-hover:text-white font-extrabold flex items-center justify-center text-lg transition-colors shadow-inner flex-shrink-0">
+                        ${opt.letter}
+                    </div>
+                    <span class="text-base md:text-lg font-bold text-slate-800 group-hover:text-blue-900 leading-snug">
+                        ${opt.text}
+                    </span>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // --- REVEAL BONUS QUESTION ---
+        function revealBonusQuestion() {
+            bonusQuestionRevealed = true;
+            renderQuestion();
+        }
+
+        // --- QUESTION NAVIGATION HANDLERS ---
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                bonusQuestionRevealed = false;
+                renderQuestion();
+                renderTeacherControls();
+            }
+        }
+
+        function skipToNextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                bonusQuestionRevealed = false;
+                renderQuestion();
+                renderTeacherControls();
+            } else {
+                showWinnerModal();
+            }
+        }
+
+        // --- LOCK SELECTED OPTION (DON'T CHECK IMMEDIATELY) ---
+        function lockOption(opt, btnElement) {
+            if (answerSubmitted) return;
+
+            selectedOptionData = opt;
+
+            // Reset all option buttons styling
+            document.querySelectorAll('.option-btn').forEach(b => {
+                b.className = "option-btn group w-full bg-slate-50 hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-400 rounded-2xl p-4 text-left transition-all duration-200 flex items-center space-x-4 shadow-sm hover:shadow-md active:scale-98";
+                const badge = b.querySelector('.opt-badge');
+                if (badge) {
+                    badge.className = "opt-badge w-11 h-11 rounded-xl bg-blue-100 group-hover:bg-blue-600 text-blue-700 group-hover:text-white font-extrabold flex items-center justify-center text-lg transition-colors shadow-inner flex-shrink-0";
+                }
+            });
+
+            // Highlight locked option
+            btnElement.className = "option-btn group w-full bg-blue-100 border-4 border-blue-600 rounded-2xl p-4 text-left transition-all duration-200 flex items-center space-x-4 shadow-lg scale-[1.02]";
+            const badge = btnElement.querySelector('.opt-badge');
+            if (badge) {
+                badge.className = "opt-badge w-11 h-11 rounded-xl bg-blue-600 text-white font-extrabold flex items-center justify-center text-lg shadow-inner flex-shrink-0";
+            }
+
+            // Enable Check Answer Button
+            const checkBtn = document.getElementById('check-answer-btn');
+            checkBtn.disabled = false;
+            checkBtn.className = "w-full md:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-extrabold text-lg py-3.5 px-8 rounded-2xl shadow-lg transition-all duration-200 flex items-center justify-center gap-3 transform hover:scale-105 active:scale-95 cursor-pointer animate-pulse";
+            document.getElementById('check-btn-text').innerText = `Periksa Jawaban (${opt.letter})`;
+            checkBtn.querySelector('i').className = "fa-solid fa-circle-check";
+        }
+
+        // --- SUBMIT AND CHECK ANSWER ---
+        function checkAnswer() {
+            if (answerSubmitted || !selectedOptionData) return;
+            answerSubmitted = true;
+
+            const q = isTieBreakerMode ? tieBreakerQuestions[tieBreakerIndex] : questions[currentQuestionIndex];
+            const isCorrect = selectedOptionData.correct;
+            const currentGroup = groups[currentGroupIndex];
+
+            // Play sound effect & trigger colored fireworks
+            playChime(isCorrect);
+            triggerFireworks(isCorrect);
+
+            if (isCorrect) {
+                currentGroup.score += q.point;
+            }
+
+            // Update Scoreboard immediately
+            renderScoreboard();
+            renderTeacherControls();
+
+            // Setup and Show Popup Modal
+            showResultModal(isCorrect, currentGroup, q);
+        }
+
+        // --- SHOW RESULT & EXPLANATION MODAL ---
+        function showResultModal(isCorrect, group, question) {
+            const modal = document.getElementById('result-modal');
+            const iconBg = document.getElementById('result-icon-bg');
+            const title = document.getElementById('result-title');
+            const subtitle = document.getElementById('result-subtitle');
+            const explanation = document.getElementById('result-explanation');
+
+            if (isCorrect) {
+                iconBg.className = "w-20 h-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-3 shadow-lg bg-emerald-100 text-emerald-600 border-4 border-emerald-300";
+                iconBg.innerHTML = '<i class="fa-solid fa-check"></i>';
+                title.innerText = "Wah, Hebat! Jawaban Benar! 🎉";
+                title.className = "text-2xl md:text-3xl font-black mb-1 text-emerald-700";
+                subtitle.innerText = `${group.name} berhasil mendapatkan +${question.point} Poin!`;
+            } else {
+                iconBg.className = "w-20 h-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-3 shadow-lg bg-amber-100 text-amber-700 border-4 border-amber-300";
+                iconBg.innerHTML = '<span class="text-4xl">🤗</span>';
+                title.innerText = "Belum Tepat, Tetap Semangat! 🤗";
+                title.className = "text-2xl md:text-3xl font-black mb-1 text-amber-700";
+                subtitle.innerText = `${group.name} belum berhasil mendapatkan poin kali ini. Tetap semangat!`;
+            }
+
+            explanation.innerText = question.explanation || "Tidak ada pembahasan khusus untuk soal ini.";
+            modal.classList.remove('hidden');
+        }
+
+        function nextTurnAndQuestion() {
+            document.getElementById('result-modal').classList.add('hidden');
+
+            if (isTieBreakerMode) {
+                // Check if tie is already broken (one group is uniquely highest)
+                if (!hasTopScoreTie()) {
+                    // Tie is broken! Stop quiz immediately and show winner
+                    showWinnerModal();
+                    return;
+                }
+
+                // Still tied -> move to next tie-breaker question
+                tieBreakerIndex++;
+                bonusQuestionRevealed = false;
+
+                if (tieBreakerIndex < tieBreakerQuestions.length) {
+                    renderScoreboard();
+                    renderQuestion();
+                    renderTeacherControls();
+                } else {
+                    // All 4 tie breaker questions used -> Show winner
+                    showWinnerModal();
+                }
+            } else {
+                // Move to next regular question
+                currentQuestionIndex++;
+                bonusQuestionRevealed = false;
+
+                if (currentQuestionIndex < questions.length) {
+                    // Move turn to next group (0 to 4 circularly)
+                    currentGroupIndex = (currentGroupIndex + 1) % groups.length;
+                    renderScoreboard();
+                    renderQuestion();
+                    renderTeacherControls();
+                } else {
+                    // Check if there is a tie for the top score at the end of question 11
+                    if (hasTopScoreTie()) {
+                        isTieBreakerMode = true;
+                        tieBreakerIndex = 0;
+                        const tiedGroups = getTiedTopGroups();
+                        currentGroupIndex = groups.findIndex(g => g.id === tiedGroups[0].id);
+                        renderScoreboard();
+                        renderQuestion();
+                        renderTeacherControls();
+                    } else {
+                        showWinnerModal();
+                    }
+                }
+            }
+        }
+
+        // --- WINNER MODAL ---
+        function showWinnerModal() {
+            const modal = document.getElementById('winner-modal');
+            const leaderboard = document.getElementById('final-leaderboard');
+            const barChartBox = document.getElementById('bar-chart-container');
+
+            // Sort groups by score descending
+            const sortedGroups = [...groups].sort((a, b) => b.score - a.score);
+            const maxScore = Math.max(...groups.map(g => g.score), 100);
+
+            // Update winner team badge name
+            const winnerBadge = document.getElementById('winner-team-name-badge');
+            if (winnerBadge && sortedGroups.length > 0) {
+                winnerBadge.innerText = `🏆 ${sortedGroups[0].name} 🏆`;
+            }
+
+            // Render Bar Chart (Diagram Batang)
+            barChartBox.innerHTML = '';
+            groups.forEach((g) => {
+                const heightPercent = Math.max(12, Math.round((g.score / maxScore) * 100));
+                const barCol = document.createElement('div');
+                barCol.className = "flex-1 flex flex-col items-center justify-end h-full z-10";
+                
+                barCol.innerHTML = `
+                    <span class="text-xs font-black text-slate-700 mb-1 opacity-0 transition-opacity duration-500 bar-score">${g.score}</span>
+                    <div class="w-full max-w-[48px] bg-gradient-to-t ${g.color} rounded-t-xl shadow-md transition-all duration-1000 ease-out bar-item" style="height: 0%;"></div>
+                    <span class="text-[11px] md:text-xs font-bold text-slate-600 mt-2 text-center truncate w-full">${g.name.replace('Kelompok ', 'K')}</span>
+                `;
+                barChartBox.appendChild(barCol);
+            });
+
+            // Animate Bar Chart Heights
+            setTimeout(() => {
+                const bars = barChartBox.querySelectorAll('.bar-item');
+                const scores = barChartBox.querySelectorAll('.bar-score');
+                groups.forEach((g, idx) => {
+                    const heightPercent = Math.max(12, Math.round((g.score / maxScore) * 100));
+                    if (bars[idx]) bars[idx].style.height = `${heightPercent}%`;
+                    if (scores[idx]) scores[idx].style.opacity = '1';
+                });
+            }, 100);
+
+            // Render Leaderboard list
+            leaderboard.innerHTML = '';
+            sortedGroups.forEach((g, idx) => {
+                const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '🎗️';
+                const row = document.createElement('div');
+                row.className = `flex items-center justify-between p-4 rounded-2xl border-2 ${idx === 0 ? 'bg-amber-50 border-amber-300 shadow-md font-bold' : 'bg-slate-50 border-slate-200'}`;
+                row.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">${medal}</span>
+                        <span class="text-lg font-bold text-slate-800">${g.name}</span>
+                    </div>
+                    <span class="text-2xl font-black text-blue-700">${g.score} <span class="text-xs font-normal text-slate-500">Poin</span></span>
+                `;
+                leaderboard.appendChild(row);
+            });
+
+            triggerFireworks(true);
+            modal.classList.remove('hidden');
+        }
+
+        // --- TEACHER CONTROL PANEL LOGIC ---
+        function toggleTeacherPanel() {
+            const panel = document.getElementById('teacher-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        function renderTeacherControls() {
+            // Render Score Editors
+            const pointBox = document.getElementById('teacher-point-controls');
+            pointBox.innerHTML = '';
+            groups.forEach((g, idx) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between gap-2 bg-white p-2 rounded-xl border border-slate-200 shadow-sm";
+                div.innerHTML = `
+                    <span class="text-xs font-bold text-slate-700 w-24">${g.name}</span>
+                    <div class="flex items-center gap-1">
+                        <button onclick="adjustScore(${idx}, -50)" class="w-7 h-7 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-bold text-xs">-50</button>
+                        <input type="number" id="input-score-${idx}" value="${g.score}" onchange="setScoreManual(${idx}, this.value)" class="w-16 text-center text-xs font-bold border border-slate-300 rounded-lg p-1">
+                        <button onclick="adjustScore(${idx}, 100)" class="w-7 h-7 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg font-bold text-xs">+100</button>
+                    </div>
+                `;
+                pointBox.appendChild(div);
+            });
+
+            // Render Active Turn Selectors
+            const turnBox = document.getElementById('teacher-turn-buttons');
+            turnBox.innerHTML = '';
+            groups.forEach((g, idx) => {
+                const btn = document.createElement('button');
+                const isCurrent = idx === currentGroupIndex;
+                btn.className = `py-2 px-3 rounded-xl text-xs font-bold transition-all ${isCurrent ? 'bg-blue-600 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'}`;
+                btn.innerText = g.name;
+                btn.onclick = () => {
+                    currentGroupIndex = idx;
+                    renderScoreboard();
+                    renderTeacherControls();
+                };
+                turnBox.appendChild(btn);
+            });
+
+            // Render Question Jump Buttons
+            const qBox = document.getElementById('teacher-q-jump');
+            qBox.innerHTML = '';
+            questions.forEach((q, idx) => {
+                const btn = document.createElement('button');
+                const isCurrent = idx === currentQuestionIndex;
+                btn.className = `py-1.5 rounded-lg text-xs font-bold ${isCurrent ? 'bg-amber-500 text-white shadow' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'}`;
+                btn.innerText = `Soal ${q.id}`;
+                btn.onclick = () => {
+                    currentQuestionIndex = idx;
+                    renderQuestion();
+                    renderTeacherControls();
+                };
+                qBox.appendChild(btn);
+            });
+        }
+
+        function adjustScore(groupIndex, delta) {
+            groups[groupIndex].score = Math.max(0, groups[groupIndex].score + delta);
+            renderScoreboard();
+            renderTeacherControls();
+        }
+
+        function setScoreManual(groupIndex, val) {
+            groups[groupIndex].score = Math.max(0, parseInt(val) || 0);
+            renderScoreboard();
+            renderTeacherControls();
+        }
+
+        function skipQuestion() {
+            currentQuestionIndex = (currentQuestionIndex + 1) % questions.length;
+            bonusQuestionRevealed = false;
+            renderQuestion();
+            renderTeacherControls();
+        }
+
+        function confirmResetGame() {
+            if (confirm("Apakah Anda yakin ingin mengulang permainan dari awal? Semua poin akan direset.")) {
+                resetGame();
+            }
+        }
+
+        function resetGame() {
+            groups.forEach(g => g.score = 0);
+            currentQuestionIndex = 0;
+            currentGroupIndex = 0;
+            isTieBreakerMode = false;
+            tieBreakerIndex = 0;
+            bonusQuestionRevealed = false;
+            document.getElementById('winner-modal').classList.add('hidden');
+            document.getElementById('teacher-panel').classList.add('hidden');
+            renderScoreboard();
+            renderQuestion();
+            renderTeacherControls();
+        }
+    </script>
+</body>
+</html>
